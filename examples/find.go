@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	dtree "github.com/marcinwyszynski/directory_tree"
+	dtree "github.com/f4n4t/directory_tree"
 )
 
 func matchRecursively(node *dtree.Node, query string) {

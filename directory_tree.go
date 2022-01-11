@@ -21,11 +21,12 @@ type FileInfo struct {
 	Mode    os.FileMode `json:"mode"`
 	ModTime time.Time   `json:"mod_time"`
 	IsDir   bool        `json:"is_dir"`
+	Ext     string      `json:"extension"`
 }
 
-// Helper function to create a local FileInfo struct from os.FileInfo interface.
+// fileInfoFromInterface Helper function to create a local FileInfo struct from os.FileInfo interface.
 func fileInfoFromInterface(v os.FileInfo) *FileInfo {
-	return &FileInfo{v.Name(), v.Size(), v.Mode(), v.ModTime(), v.IsDir()}
+	return &FileInfo{v.Name(), v.Size(), v.Mode(), v.ModTime(), v.IsDir(), filepath.Ext(v.Name())}
 }
 
 // Node represents a node in a directory tree.
@@ -36,7 +37,7 @@ type Node struct {
 	Parent   *Node     `json:"-"`
 }
 
-// Create directory hierarchy.
+// NewTree Create directory hierarchy.
 func NewTree(root string) (result *Node, err error) {
 	absRoot, err := filepath.Abs(root)
 	if err != nil {
@@ -65,6 +66,19 @@ func NewTree(root string) (result *Node, err error) {
 		} else {
 			node.Parent = parent
 			parent.Children = append(parent.Children, node)
+		}
+	}
+	return
+}
+
+// GetFiles return a slice with all files.
+// Leave ext empty to return all the files.
+func (n *Node) GetFiles(ext string) (files []*Node) {
+	for _, child := range n.Children {
+		if child.Info.IsDir {
+			files = append(files, child.GetFiles(ext)...)
+		} else if ext == "" || ext == child.Info.Ext {
+			files = append(files, child)
 		}
 	}
 	return
